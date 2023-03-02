@@ -28,7 +28,7 @@
 
 		if (!first_call) {
 			for (let row = 0; row < sheet_data.length; row++) {
-				if (sheet_data[row].length > table_original_width) {
+				if (sheet_data[row].length > table_original_width + 1) {
 					sheet_data[row].pop();
 				}
 			}
@@ -127,8 +127,9 @@
 			bargap: 0.05,
 			xaxis: { title: 'Grade' },
 			yaxis: { title: '#Counts' },
+			width: 700,
 			title:
-				'HS2023 TF Exam. Mean: ' +
+				'TF Exam. Mean: ' +
 				mean.toString() +
 				' Std: ' +
 				std.toString() +
@@ -195,7 +196,7 @@
 		let table_header = document.getElementById('table_preview')!.getElementsByTagName('th');
 
 		for (let i = 0; i < table_header.length; i++) {
-			table_header[i].style.fontSize = '0.9em';
+			table_header[i].style.fontSize = '13px';
 			table_header[i].style.padding = '5px';
 			table_header[i].style.color = 'white';
 			table_header[i].style.backgroundColor = '#2F90ED';
@@ -205,7 +206,7 @@
 
 		for (let i = 0; i < table_data.length; i++) {
 			table_data[i].style.textAlign = 'center';
-			table_data[i].style.fontSize = '0.8em';
+			table_data[i].style.fontSize = '11px';
 		}
 
 		for (let row = 1; row < sheet_data.length; row++) {
