@@ -128,6 +128,8 @@
 			bargap: 0.05,
 			xaxis: { title: 'Grade' },
 			yaxis: { title: '#Counts' },
+			width: 750,
+			height: 550,
 			title:
 				'HS2023 TF Exam. Mean: ' +
 				mean.toString() +
@@ -332,9 +334,9 @@
 			<label for="max">Grade max:</label>
 			<input type="text" name="max" id="max" size="4" bind:value={max_grade} />
 			<br />
-			<label for="cut_4">Grade 4 cut:</label>
+			<label for="cut_4">Lower cut:</label>
 			<input type="text" name="cut_4" id="cut_4" size="4" bind:value={cut_4} />
-			<label for="cut_6">Grade 6 cut:</label>
+			<label for="cut_6">Upper cut:</label>
 			<input type="text" name="cut_6" id="cut_6" size="4" bind:value={cut_6} />
 			<input type="submit" id="submit" value="Process" />
 			<button type="button" id="export" on:click={export_table}>Export</button>
@@ -385,6 +387,9 @@
 	}
 
 	#graph_holder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		visibility: hidden;
 		height: auto;
 	}
