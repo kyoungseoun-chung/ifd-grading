@@ -14,13 +14,14 @@
 	let cut_6: number = 75;
 	let dist_data: Array<number> = [];
 
-	async function export_table() {
-		const table = document.getElementById('table_preview');
+	const export_table = () => {
+		const table = document.getElementById('grade_table');
+		console.log(table);
 		const wb = utils.table_to_book(table);
 
 		/* Export to file (start a download) */
 		writeFile(wb, 'grade_processed.xlsx');
-	}
+	};
 
 	const reset_data = () => {
 		let plotDiv = document.getElementById('graph_holder')!;
@@ -128,8 +129,6 @@
 			bargap: 0.05,
 			xaxis: { title: 'Grade' },
 			yaxis: { title: '#Counts' },
-			width: 750,
-			height: 550,
 			title:
 				'HS2023 TF Exam. Mean: ' +
 				mean.toString() +
@@ -223,7 +222,8 @@
 	};
 
 	const sheet_to_table = (sheet_data: Array<Array<string | number>>, final: boolean): string => {
-		let table_output: string = '<table class="table table-striped table-bordered">';
+		let table_output: string =
+			'<table id="grade_table" class="table table-striped table-bordered">';
 
 		let row_anchor = 0;
 
@@ -358,7 +358,7 @@
 	}
 
 	.body {
-		padding: var(--default_margin);
+		margin: 4em;
 	}
 
 	.welcome {
@@ -387,6 +387,7 @@
 	}
 
 	#graph_holder {
+		margin-top: var(--default_margin);
 		display: flex;
 		align-items: center;
 		justify-content: center;
