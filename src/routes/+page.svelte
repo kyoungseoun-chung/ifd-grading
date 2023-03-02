@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { AnymatchFn } from 'vite';
 	import { read, utils, writeFile } from 'xlsx';
 
 	let sheet_data: Array<Array<string | number>>;
@@ -26,7 +25,6 @@
 	const reset_data = () => {
 		let plotDiv = document.getElementById('graph_holder')!;
 		plotDiv.style.visibility = 'hidden';
-		plotDiv.style.height = '0';
 
 		if (!first_call) {
 			for (let row = 0; row < sheet_data.length; row++) {
@@ -139,9 +137,9 @@
 				' Num_max: ' +
 				num_max.toString()
 		};
+
 		plotDiv.style.visibility = 'visible';
-		plotDiv.style.height = 'auto';
-		let plot = Plotly.newPlot(plotDiv, data, layout);
+		Plotly.newPlot(plotDiv, data, layout);
 
 		let table_data: string = sheet_to_table(sheet_data, true);
 		document.getElementById('table_preview')!.innerHTML = '';
@@ -210,15 +208,13 @@
 			table_data[i].style.fontSize = '0.8em';
 		}
 
-		for (let row = 0; row < sheet_data.length; row++) {
+		for (let row = 1; row < sheet_data.length; row++) {
 			if (row % 2 == 0) {
 				document.getElementById('table_preview')!.getElementsByTagName('tr')[
 					row
 				].style.backgroundColor = '#E3E3E3';
 			}
 		}
-		document.getElementById('table_preview')!.getElementsByTagName('table')[0].style.padding =
-			'2px';
 	};
 
 	const sheet_to_table = (sheet_data: Array<Array<string | number>>, final: boolean): string => {
@@ -343,9 +339,9 @@
 			<button type="button" id="reset" on:click={reset_data}>Reset</button>
 		</div>
 	</form>
-	<div id="graph_holder" />
 	<div id="text_holder" />
 	<div id="table_preview" />
+	<div id="graph_holder" />
 </div>
 
 <style>
