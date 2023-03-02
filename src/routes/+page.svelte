@@ -22,22 +22,6 @@
 		writeFile(wb, 'grade_processed.xlsx');
 	};
 
-	const reset_data = () => {
-		let plotDiv = document.getElementById('graph_holder')!;
-		plotDiv.style.visibility = 'hidden';
-
-		if (!first_call) {
-			for (let row = 0; row < sheet_data.length; row++) {
-				if (sheet_data[row].length > table_original_width + 1) {
-					sheet_data[row].pop();
-				}
-			}
-		}
-
-		sheet_to_table(sheet_data, false);
-		table_styling();
-	};
-
 	const handleSubmit = () => {
 		var check_box = document.getElementsByClassName('headers')!;
 
@@ -45,6 +29,7 @@
 
 		for (let i = 0; i < check_box.length; i++) {
 			let checker = check_box[i] as HTMLInputElement;
+
 			if (checker.checked) {
 				col_idx = i;
 				table_original_width = col_idx;
@@ -55,11 +40,11 @@
 			alert('No data column selected!');
 			console.log(table_original_width);
 
-			if (!first_call) {
-				for (let row = 0; row < sheet_data.length; row++) {
-					if (sheet_data[row].length > table_original_width) {
-						sheet_data[row].pop();
-					}
+			let row_anchor = check_header_loc(sheet_data);
+
+			for (let row = row_anchor; row < sheet_data.length; row++) {
+				if (sheet_data[row].length > table_original_width + 1) {
+					sheet_data[row].pop();
 				}
 			}
 
@@ -67,9 +52,7 @@
 			table_styling();
 			return;
 		} else {
-			if (first_call) {
-				first_call = false;
-			}
+			first_call = false;
 		}
 
 		sheet_data = add_final_grade(
@@ -83,9 +66,17 @@
 		);
 		let plotDiv = document.getElementById('graph_holder')!;
 		let row_anchor = check_header_loc(sheet_data);
+
+		let idx = 0;
 		for (let row = row_anchor + 1; row < sheet_data.length; row++) {
-			dist_data.push(sheet_data[row].at(-1) as number);
+			if (first_call) {
+				dist_data.push(sheet_data[row].at(-1) as number);
+			} else {
+				dist_data[idx] = sheet_data[row].at(-1) as number;
+				idx += 1;
+			}
 		}
+
 		let data: Array<object> = [
 			{
 				x: dist_data,
@@ -158,6 +149,7 @@
 		cut_6: number
 	): Array<Array<string | number>> => {
 		let row_anchor = check_header_loc(sheet_data);
+
 		for (var row = row_anchor; row < sheet_data.length; row++) {
 			if (row == row_anchor) {
 				sheet_data[row].push('Grade');
@@ -304,6 +296,7 @@
 
 <svelte:head>
 	<script src="https://cdn.plot.ly/plotly-latest.min.js" type="text/javascript"></script>
+	<script src="https://d3js.org/d3.v4.js"></script>
 </svelte:head>
 
 <div class="body">
@@ -337,12 +330,12 @@
 			<input type="text" name="cut_6" id="cut_6" size="4" bind:value={cut_6} />
 			<input type="submit" id="submit" value="Process" />
 			<button type="button" id="export" on:click={export_table}>Export</button>
-			<button type="button" id="reset" on:click={reset_data}>Reset</button>
 		</div>
 	</form>
+
+	<div id="graph_holder" />
 	<div id="text_holder" />
 	<div id="table_preview" />
-	<div id="graph_holder" />
 </div>
 
 <style>
@@ -392,15 +385,6 @@
 		height: auto;
 	}
 	#export {
-		font-size: 0.7em;
-		margin-left: var(--default_margin);
-		font-weight: 800;
-		background-color: #2f90ed;
-		color: #e3e3e3;
-		border-radius: 50%;
-		padding: 7px;
-	}
-	#reset {
 		font-size: 0.7em;
 		margin-left: var(--default_margin);
 		font-weight: 800;

@@ -10,7 +10,7 @@ You can grade exam by providing an Excel sheet.
 - Step 1: Select a column contains total points from the below Excel sheet.
 - Step 2: Set grading criteria from the below and press `Process` button.
 - Step 3: You can export processed data to `.xlsx` file by pressing `Export` button.
-- Step 4: If you want, you can reset the process. Press `Reset`.
+- Step 4: Pressing `Process` button once again will reset the data.
 
 ### Required parameters
 
