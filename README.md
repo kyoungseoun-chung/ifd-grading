@@ -22,6 +22,10 @@ You can grade exam by providing an Excel sheet.
 
 ### Demo
 
+Demo using the dummy data (`./data/grading.xlsx`)
+
+> All information in the dummy data is randomly generated.
+
 ![Screenshot](static/screenshot.png)
 
 ### Contact

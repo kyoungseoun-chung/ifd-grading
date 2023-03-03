@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { read, utils, writeFile } from 'xlsx';
+	import { read, utils } from 'xlsx';
+	import { add_final_grade, statistics } from './grade';
+	import { table_styling, check_header_loc, sheet_to_html, export_table } from './table';
+	import { plot_d3 } from './plot';
 
 	let sheet_data: Array<Array<string | number>>;
 	let table_original_width: number = 0;
@@ -12,15 +15,6 @@
 	let cut_4: number = 35;
 	let cut_6: number = 75;
 	let dist_data: Array<number> = [];
-
-	const export_table = () => {
-		const table = document.getElementById('grade_table');
-		console.log(table);
-		const wb = utils.table_to_book(table);
-
-		/* Export to file (start a download) */
-		writeFile(wb, 'grade_processed.xlsx');
-	};
 
 	const handleSubmit = () => {
 		var check_box = document.getElementsByClassName('headers')!;
@@ -38,7 +32,9 @@
 
 		if (col_idx < 0) {
 			alert('No data column selected!');
-			console.log(table_original_width);
+			if (first_call) {
+				return;
+			}
 
 			let row_anchor = check_header_loc(sheet_data);
 
@@ -48,8 +44,8 @@
 				}
 			}
 
-			sheet_to_table(sheet_data, false);
-			table_styling();
+			sheet_to_html(sheet_data, false);
+			table_styling(sheet_data);
 			return;
 		} else {
 			first_call = false;
@@ -64,6 +60,7 @@
 			cut_4,
 			cut_6
 		);
+
 		let plotDiv = document.getElementById('graph_holder')!;
 		let row_anchor = check_header_loc(sheet_data);
 
@@ -77,183 +74,33 @@
 			}
 		}
 
-		let data: Array<object> = [
-			{
-				x: dist_data,
-				type: 'histogram',
-				autobinx: false,
-				xbins: {
-					end: 6.125,
-					size: 0.25,
-					start: 0.875
-				},
-				marker: {
-					color: '#2f90ed'
-				}
-			}
-		];
-		let mean: number =
-			Math.round((100 * dist_data.reduce((a, b) => a + b, 0)) / dist_data.length) / 100;
-		let std: number =
-			Math.round(
-				100 *
-					Math.sqrt(
-						dist_data.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / dist_data.length
-					)
-			) / 100;
+		let stat = statistics(dist_data, pass_grade, max_grade);
 
-		let num_fail: number = 0;
-		let num_max: number = 0;
+		let stats: string =
+			'Mean: ' +
+			stat.mean.toString() +
+			', Std: ' +
+			stat.std.toString() +
+			', Num_fail: ' +
+			stat.fail.toString() +
+			', Num_max: ' +
+			stat.full.toString() +
+			', Num_pass: ' +
+			stat.pass.toString() +
+			', Among: ' +
+			stat.total.toString() +
+			' students';
 
-		for (let i = 0; i < dist_data.length; i++) {
-			if (dist_data[i] < min_grade) {
-				num_fail += 1;
-			}
-			if (dist_data[i] >= max_grade) {
-				num_max += 1;
-			}
-		}
+		const g_holder = document.getElementById('graph_holder') as HTMLElement;
+		g_holder.style.visibility = 'visible';
+		g_holder.innerHTML = '<p>TF Grading Results</p><p>' + stats + '</p><br>';
 
-		let layout: object = {
-			bargap: 0.05,
-			xaxis: { title: 'Grade' },
-			yaxis: { title: '#Counts' },
-			width: 700,
-			title:
-				'TF Exam. Mean: ' +
-				mean.toString() +
-				' Std: ' +
-				std.toString() +
-				' Num_fail: ' +
-				num_fail.toString() +
-				' Num_max: ' +
-				num_max.toString()
-		};
+		plot_d3(dist_data, min_grade, max_grade, 0.25);
 
-		plotDiv.style.visibility = 'visible';
-		Plotly.newPlot(plotDiv, data, layout);
-
-		let table_data: string = sheet_to_table(sheet_data, true);
+		let table_data: string = sheet_to_html(sheet_data, true);
 		document.getElementById('table_preview')!.innerHTML = '';
 		document.getElementById('table_preview')!.innerHTML = table_data;
-		table_styling();
-	};
-
-	const add_final_grade = (
-		sheet_data: Array<Array<string | number>>,
-		col_idx: number,
-		min: number,
-		max: number,
-		pass: number,
-		cut_4: number,
-		cut_6: number
-	): Array<Array<string | number>> => {
-		let row_anchor = check_header_loc(sheet_data);
-
-		for (var row = row_anchor; row < sheet_data.length; row++) {
-			if (row == row_anchor) {
-				sheet_data[row].push('Grade');
-			} else {
-				let val: number = sheet_data[row][col_idx] as number;
-				let fail_gap: number = pass - min;
-				let pass_gap: number = max - pass;
-
-				let computed: number = 0;
-
-				if (val < cut_4) {
-					computed = 0.875 + (fail_gap * val) / cut_4;
-				} else {
-					computed = 3.875 + (pass_gap * (val - cut_4)) / (cut_6 - cut_4);
-					if (computed > max) {
-						computed = max;
-					}
-				}
-				sheet_data[row].push(Math.round(4 * computed) / 4);
-			}
-		}
-
-		return sheet_data;
-	};
-
-	const check_header_loc = (sheet_data: Array<Array<string | number>>): number => {
-		for (let row = 0; row < sheet_data.length; row++) {
-			if (sheet_data[row].length > 3) {
-				return row;
-			}
-		}
-		return -1;
-	};
-
-	const table_styling = () => {
-		let table_header = document.getElementById('table_preview')!.getElementsByTagName('th');
-
-		for (let i = 0; i < table_header.length; i++) {
-			table_header[i].style.fontSize = '13px';
-			table_header[i].style.padding = '5px';
-			table_header[i].style.color = 'white';
-			table_header[i].style.backgroundColor = '#2F90ED';
-		}
-
-		let table_data = document.getElementById('table_preview')!.getElementsByTagName('td');
-
-		for (let i = 0; i < table_data.length; i++) {
-			table_data[i].style.textAlign = 'center';
-			table_data[i].style.fontSize = '11px';
-		}
-
-		for (let row = 1; row < sheet_data.length; row++) {
-			if (row % 2 == 0) {
-				document.getElementById('table_preview')!.getElementsByTagName('tr')[
-					row
-				].style.backgroundColor = '#E3E3E3';
-			}
-		}
-	};
-
-	const sheet_to_table = (sheet_data: Array<Array<string | number>>, final: boolean): string => {
-		let table_output: string =
-			'<table id="grade_table" class="table table-striped table-bordered">';
-
-		let row_anchor = 0;
-
-		row_anchor = check_header_loc(sheet_data);
-		if (row_anchor < 0) {
-			alert('No header found in the excel sheet!');
-		}
-
-		for (var row = row_anchor; row < sheet_data.length; row++) {
-			table_output += '<tr>';
-
-			for (let cell = 0; cell < sheet_data[row].length; cell++) {
-				if (row == row_anchor) {
-					if (final) {
-						table_output += '<th>' + sheet_data[row][cell] + '</th>';
-					} else {
-						table_output +=
-							'<th><input type="checkbox" class="headers" name=' +
-							cell.toString +
-							' value-' +
-							cell.toString +
-							'/><br>' +
-							sheet_data[row][cell] +
-							'</th>';
-					}
-				} else {
-					let n = Number(sheet_data[row][cell]);
-
-					if (Number(n) === n && n % 1 !== 0) {
-						sheet_data[row][cell] = Math.round(n * 100) / 100;
-					}
-					table_output += '<td>' + sheet_data[row][cell] + '</td>';
-				}
-			}
-			table_output += '</tr>';
-		}
-
-		table_output += '</table>';
-
-		document.getElementById('table_preview')!.innerHTML = table_output;
-		return table_output;
+		table_styling(sheet_data);
 	};
 
 	onMount(() => {
@@ -270,8 +117,6 @@
 			const file: File = (target.files as FileList)[0];
 
 			let reader = new FileReader();
-			console.log(file);
-			console.log(reader);
 			reader.readAsArrayBuffer(file);
 			reader.addEventListener('load', (event: Event) => {
 				let data = new Uint8Array(reader.result as ArrayBuffer);
@@ -282,8 +127,8 @@
 				});
 				if (sheet_data.length > 3) {
 					first_call = true;
-					sheet_to_table(sheet_data, false);
-					table_styling();
+					sheet_to_html(sheet_data, false);
+					table_styling(sheet_data);
 				} else {
 					document.getElementById('table_preview')!.innerHTML =
 						'<div class="alert alert-danger" style="color: red; font-weight: 800";>Not enough data stored in the excel sheet! Check the data first.</div>';
@@ -296,7 +141,6 @@
 
 <svelte:head>
 	<script src="https://cdn.plot.ly/plotly-latest.min.js" type="text/javascript"></script>
-	<script src="https://d3js.org/d3.v4.js"></script>
 </svelte:head>
 
 <div class="body">
@@ -383,7 +227,9 @@
 		justify-content: center;
 		visibility: hidden;
 		height: auto;
+		flex-direction: column;
 	}
+
 	#export {
 		font-size: 0.7em;
 		margin-left: var(--default_margin);
