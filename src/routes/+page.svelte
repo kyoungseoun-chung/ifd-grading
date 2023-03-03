@@ -91,9 +91,7 @@
 
 		plot_d3(dist_data, min_grade, max_grade, 0.25);
 
-		let table_data: string = sheet_to_html(sheet_data, true);
-		document.getElementById('table_preview')!.innerHTML = '';
-		document.getElementById('table_preview')!.innerHTML = table_data;
+		sheet_to_html(sheet_data, true);
 		table_styling(sheet_data);
 	};
 
@@ -155,25 +153,29 @@
 			<p>Step 4: If you want, you can reset the process. Press 'Reset'</p>
 			<br />
 
-			<label for="min">Grade min</label>
-			<input type="text" name="min" id="min" size="4" bind:value={min_grade} />
-			<label for="pass">Grade pass</label>
-			<input type="text" name="pass" id="pass" size="4" bind:value={pass_grade} />
-			<label for="max">Grade max:</label>
-			<input type="text" name="max" id="max" size="4" bind:value={max_grade} />
-			<br />
-			<label for="cut_4">Lower cut:</label>
-			<input type="text" name="cut_4" id="cut_4" size="4" bind:value={cut_4} />
-			<label for="cut_6">Upper cut:</label>
-			<input type="text" name="cut_6" id="cut_6" size="4" bind:value={cut_6} />
-			<input type="submit" id="submit" value="Process" />
-			<button type="button" id="export" on:click={export_table}>Export</button>
+			<div id="input_holder">
+				<label for="min">Grade min: </label>
+				<input type="text" name="min" class="param" size="4" bind:value={min_grade} />
+				<label for="pass">Grade pass: </label>
+				<input type="text" name="pass" class="param" size="4" bind:value={pass_grade} />
+				<label for="max">Grade max: </label>
+				<input type="text" name="max" class="param" size="4" bind:value={max_grade} />
+				<br />
+				<label for="cut_4">Lower cut: </label>
+				<input type="text" name="cut_4" class="param" size="4" bind:value={cut_4} />
+				<label for="cut_6">Upper cut: </label>
+				<input type="text" name="cut_6" class="param" size="4" bind:value={cut_6} />
+				<input type="submit" class="submit" value="Process" />
+				<button type="button" id="export" on:click={export_table}>Export</button>
+			</div>
 		</div>
 	</form>
 
 	<div id="graph_holder" />
 	<div id="text_holder" />
-	<div id="table_preview" />
+	<div id="table_preview">
+		<table id="grade_table" />
+	</div>
 </div>
 
 <style>
@@ -186,7 +188,8 @@
 	}
 
 	.body {
-		margin: 4em;
+		font-size: 0.7em;
+		margin: 1em 1em;
 	}
 
 	.welcome {
@@ -198,6 +201,7 @@
 		display: flex;
 		justify-content: center;
 		margin-top: var(--default_margin);
+		font-size: 0.8em;
 	}
 
 	form {
@@ -206,12 +210,34 @@
 		margin-top: var(--default_half_margin);
 	}
 
-	form input {
+	#input_holder {
+		text-align: center;
+	}
+
+	form input.param {
+		margin: calc(var(--default_half_margin) / 2);
+		width: 2em;
+		border-radius: 25%;
+		text-align: center;
+	}
+
+	form input.submit {
 		margin: var(--default_half_margin);
+		width: 6em;
 	}
 
 	form #form_inset {
 		visibility: hidden;
+	}
+
+	:global(#grade_table th) {
+		padding: 5px;
+		color: white;
+		background-color: #2f90ed;
+	}
+	:global(#grade_table td) {
+		text-align: center;
+		padding: 5px;
 	}
 
 	#graph_holder {
@@ -232,5 +258,16 @@
 		color: #e3e3e3;
 		border-radius: 50%;
 		padding: 7px;
+	}
+	@media only screen and (min-width: 768px) {
+		.body {
+			font-size: 1.5em;
+			margin: 1em 8em;
+		}
+		#table_preview {
+			display: flex;
+			justify-content: center;
+			margin-top: var(--default_margin);
+		}
 	}
 </style>
