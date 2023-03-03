@@ -6,7 +6,6 @@
 	import { plot_d3 } from './plot';
 
 	let sheet_data: Array<Array<string | number>>;
-	let table_original_width: number = 0;
 	let first_call: boolean = true;
 
 	let min_grade: number = 1;
@@ -15,6 +14,8 @@
 	let cut_4: number = 35;
 	let cut_6: number = 75;
 	let dist_data: Array<number> = [];
+	let recompute = false;
+	let prev_col_idx = -1;
 
 	const handleSubmit = () => {
 		var check_box = document.getElementsByClassName('headers')!;
@@ -26,42 +27,35 @@
 
 			if (checker.checked) {
 				col_idx = i;
-				table_original_width = col_idx;
 			}
 		}
 
-		if (col_idx < 0) {
+		if (first_call && col_idx < 0) {
 			alert('No data column selected!');
-			if (first_call) {
-				return;
-			}
-
-			let row_anchor = check_header_loc(sheet_data);
-
-			for (let row = row_anchor; row < sheet_data.length; row++) {
-				if (sheet_data[row].length > table_original_width + 1) {
-					sheet_data[row].pop();
-				}
-			}
-
-			sheet_to_html(sheet_data, false);
-			table_styling(sheet_data);
 			return;
-		} else {
-			first_call = false;
+		}
+
+		if (col_idx > 0) {
+			prev_col_idx = col_idx;
+		}
+
+		if (!first_call) {
+			recompute = true;
+			col_idx -= 1;
 		}
 
 		sheet_data = add_final_grade(
 			sheet_data,
-			col_idx,
+			prev_col_idx,
 			min_grade,
 			max_grade,
 			pass_grade,
 			cut_4,
-			cut_6
+			cut_6,
+			recompute
 		);
 
-		let plotDiv = document.getElementById('graph_holder')!;
+		first_call = false;
 		let row_anchor = check_header_loc(sheet_data);
 
 		let idx = 0;

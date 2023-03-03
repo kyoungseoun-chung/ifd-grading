@@ -56,13 +56,16 @@ export const add_final_grade = (
 	max: number,
 	pass: number,
 	cut_4: number,
-	cut_6: number
+	cut_6: number,
+	recompute = false
 ): Array<Array<string | number>> => {
 	const row_anchor = check_header_loc(sheet_data);
 
 	for (let row = row_anchor; row < sheet_data.length; row++) {
 		if (row == row_anchor) {
-			sheet_data[row].push('Grade');
+			if (!recompute) {
+				sheet_data[row].push('Grade');
+			}
 		} else {
 			const val: number = sheet_data[row][col_idx] as number;
 			const fail_gap: number = pass - min;
@@ -78,7 +81,11 @@ export const add_final_grade = (
 					computed = max;
 				}
 			}
-			sheet_data[row].push(Math.round(4 * computed) / 4);
+			if (recompute) {
+				sheet_data[row][sheet_data[row].length - 1] = Math.round(4 * computed) / 4;
+			} else {
+				sheet_data[row].push(Math.round(4 * computed) / 4);
+			}
 		}
 	}
 
