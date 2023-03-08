@@ -140,10 +140,12 @@
 		<h1>Welcome to IFD Grading System</h1>
 	</div>
 
-	<p>Please upload your grading excel sheet. (It only accepts .xls and .xlsx files)</p>
+	<div class="file_loader">
+		<p>Please upload your grading excel sheet. (It only accepts .xls and .xlsx files)</p>
 
-	<!-- (B) FILE PICKER -->
-	<input type="file" id="file_loader" accept=".xls,.xlsx" />
+		<!-- (B) FILE PICKER -->
+		<input type="file" id="file_loader" accept=".xls,.xlsx" />
+	</div>
 	<div id="form_holder" />
 	<form on:submit|preventDefault={handleSubmit}>
 		<div id="form_inset">
@@ -190,6 +192,12 @@
 	.body {
 		font-size: 0.7em;
 		margin: 1em 1em;
+	}
+
+	.file_loader {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
 	}
 
 	.welcome {
@@ -269,5 +277,10 @@
 			justify-content: center;
 			margin-top: var(--default_margin);
 		}
+	}
+
+	#text_holder {
+		text-align: center;
+		font-weight: 800;
 	}
 </style>
